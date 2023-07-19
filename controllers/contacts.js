@@ -1,10 +1,9 @@
 const createError = require("http-errors");
-
-const contactsOperations = require("../models/contacts");
+const { Contact } = require("../model");
 
 const getAll = async (req, res, next) => {
   try {
-    const contacts = await contactsOperations.listContacts();
+    const contacts = await Contact.find();
     res.json({
       status: "success",
       code: 200,
@@ -18,7 +17,7 @@ const getAll = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await contactsOperations.getContactById(contactId);
+    const result = await Contact.findById(contactId);
     if (!result) {
       throw createError(404, `Contact with id-${contactId} not found`);
     }
@@ -30,7 +29,7 @@ const getById = async (req, res, next) => {
 
 const add = async (req, res, next) => {
   try {
-    const result = await contactsOperations.addContact(req.body);
+    const result = await Contact.create(req.body);
     res.status(201).json({
       status: "success",
       code: 201,
@@ -44,7 +43,7 @@ const add = async (req, res, next) => {
 const deleteById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await contactsOperations.removeContact(contactId);
+    const result = await Contact.findByIdAndRemove(contactId);
     if (!result) {
       throw createError(404, `Contact with id-${contactId} not found`);
     }
@@ -62,7 +61,33 @@ const deleteById = async (req, res, next) => {
 const updateById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const result = await contactsOperations.updateContact(contactId, req.body);
+    const result = await Contact.findByIdAndUpdate(contactId, req.body, {
+      new: true,
+    });
+    if (!result) {
+      throw createError(404, `Contact with id-${contactId} not found`);
+    }
+    res.json({
+      status: "success",
+      code: 200,
+      data: { result },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateFavorite = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const { favorite } = req.body;
+    const result = await Contact.findByIdAndUpdate(
+      contactId,
+      { favorite },
+      {
+        new: true,
+      }
+    );
     if (!result) {
       throw createError(404, `Contact with id-${contactId} not found`);
     }
@@ -82,4 +107,5 @@ module.exports = {
   add,
   deleteById,
   updateById,
+  updateFavorite,
 };
