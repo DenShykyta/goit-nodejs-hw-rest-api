@@ -1,9 +1,10 @@
 const createError = require("http-errors");
-const { Contact } = require("../model");
+const { Contact } = require("../models");
 
 const getAll = async (req, res, next) => {
   try {
-    const contacts = await Contact.find();
+    const { _id: owner } = req.user;
+    const contacts = await Contact.find({ owner }, "-createdAt, -updatedAt");
     res.json({
       status: "success",
       code: 200,
@@ -29,7 +30,8 @@ const getById = async (req, res, next) => {
 
 const add = async (req, res, next) => {
   try {
-    const result = await Contact.create(req.body);
+    const { _id: owner } = req.user;
+    const result = await Contact.create({ ...req.body, owner });
     res.status(201).json({
       status: "success",
       code: 201,
